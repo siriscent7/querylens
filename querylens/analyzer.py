@@ -1,6 +1,41 @@
 import pandas as pd
 from querylens.fingerprint import fingerprint
+import duckdb
 
+def analyze_duckdb(df: pd.DataFrame) -> pd.DataFrame:
+    """Same analysis as analyze(), but executed in DuckDB via SQL.
+
+    Demonstrates an embedded analytical engine doing the aggregation —
+    the same pattern real query-observability tools use at scale.
+    """
+    df = df.copy()
+    df["fingerprint"] = df["query"].apply(fingerprint)
+
+    con = duckdb.connect()
+    con.register("queries", df)
+
+    result = con.execute(
+        """
+        SELECT
+            fingerprint,
+            COUNT(*)            AS count,
+            SUM(scan_bytes)     AS total_scan_bytes,
+            AVG(latency_ms)     AS avg_latency_ms,
+            FIRST(query)        AS example_query
+        FROM queries
+        GROUP BY fingerprint
+        ORDER BY total_scan_bytes DESC
+        """
+    ).fetchdf()
+
+    result["cost_score"] = result["total_scan_bytes"]
+    median_count = result["count"].median()
+    median_bytes = result["total_scan_bytes"].median()
+    result["cache_candidate"] = (result["count"] > median_count) & (
+        result["total_scan_bytes"] >= median_bytes
+    )
+    con.close()
+    return result
 
 def analyze(df: pd.DataFrame) -> pd.DataFrame:
     """Group queries by fingerprint and compute cost metrics.

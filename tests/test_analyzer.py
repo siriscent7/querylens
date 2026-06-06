@@ -1,5 +1,5 @@
 import pandas as pd
-from querylens.analyzer import analyze, cost_summary
+from querylens.analyzer import analyze, cost_summary, analyze_duckdb
 
 
 def make_df():
@@ -42,3 +42,10 @@ def test_cost_summary_keys():
         "top_n",
         "top_n_pct_of_cost",
     }
+
+def test_duckdb_matches_pandas():
+    df = make_df()
+    pdf = analyze(df).sort_values("fingerprint").reset_index(drop=True)
+    ddf = analyze_duckdb(df).sort_values("fingerprint").reset_index(drop=True)
+    assert len(pdf) == len(ddf)
+    assert set(pdf["count"]) == set(ddf["count"])
