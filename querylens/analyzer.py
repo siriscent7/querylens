@@ -9,7 +9,8 @@ def analyze_duckdb(df: pd.DataFrame) -> pd.DataFrame:
     the same pattern real query-observability tools use at scale.
     """
     df = df.copy()
-    df["fingerprint"] = df["query"].apply(fingerprint)
+    unique = {q: fingerprint(q) for q in df["query"].unique()}
+    df["fingerprint"] = df["query"].map(unique)
 
     con = duckdb.connect()
     con.register("queries", df)

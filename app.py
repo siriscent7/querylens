@@ -13,12 +13,13 @@ if not uploaded:
 
 df = load_queries(path)
 report = analyze_duckdb(df)
-summary = cost_summary(report, top_n=5)
+top_n = st.slider("Top N shapes to summarize", min_value=1, max_value=len(report), value=3)
+summary = cost_summary(report, top_n=top_n)
 
 c1, c2, c3 = st.columns(3)
 c1.metric("Distinct query shapes", summary["total_shapes"])
 c2.metric("Total scan bytes", f"{summary['total_scan_bytes']:,}")
-c3.metric(f"Top {summary['top_n']} shapes = ", f"{summary['top_n_pct_of_cost']}% of cost")
+c3.metric(f"Top {summary['top_n']} shapes =", f"{summary['top_n_pct_of_cost']}% of cost")
 
 st.subheader("Query shapes ranked by scan cost")
 st.dataframe(
