@@ -12,6 +12,9 @@ Point QueryLens at your SQL query logs. It fingerprints each query *shape*, rank
 Analysts run thousands of slightly-different queries. Two queries like `WHERE id = 5` and `WHERE id = 99` are the *same shape* but get counted
 separately, so no one can see which query *patterns* actually drive cost.
 
+## Prior Art
+QueryLens applies the query-fingerprinting technique used in production tools like PostgreSQL's pg_stat_statements and pganalyze, with AST-based normalization(via sqlglot) and a focus on cost attribution and cache detection.
+
 ## What it does
 - **Fingerprinting** — normalizes literals so same-shape queries collapse into one (`WHERE id = 5` → `WHERE id = ?`), using AST parsing via `sqlglot`.
 - **Cost ranking** — aggregates by shape and ranks by total scan bytes.
