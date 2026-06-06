@@ -1,0 +1,5 @@
+sqlglot
+duckdb
+streamlit
+pytest
+pandas
